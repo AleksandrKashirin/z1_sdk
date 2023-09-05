@@ -1,5 +1,7 @@
 import sys
-sys.path.append("../lib")
+sys.path.append("/home/aleksandr/.local/share/ov/pkg/isaac_sim-2022.2.1/\
+exts/omni.isaac.examples/omni/isaac/examples/user_examples/\
+z1_manipulation/z1_sdk/lib")
 import unitree_arm_interface
 import time
 import numpy as np
