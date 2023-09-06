@@ -11,6 +11,11 @@ print("Press ctrl+\ to quit process.")
 np.set_printoptions(precision=3, suppress=True)
 arm = unitree_arm_interface.ArmInterface(hasGripper=True)
 armModel = arm._ctrlComp.armModel
+
+# print("JointQMax:", armModel.getJointQMax())
+# print("JointQMin:", armModel.getJointQMin())
+# print("JointSpeedMax:", armModel.getJointSpeedMax())
+
 arm.setFsmLowcmd()
 
 duration = 1000
