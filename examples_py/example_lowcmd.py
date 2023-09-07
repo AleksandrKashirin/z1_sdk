@@ -16,24 +16,57 @@ armModel = arm._ctrlComp.armModel
 # print("JointQMin:", armModel.getJointQMin())
 # print("JointSpeedMax:", armModel.getJointSpeedMax())
 
+# JointQMax: [2.6179938779914944, 2.8797932657906435, 0.0, 1.5184364492350666, 1.3439035240356338, 2.792526803190927]
+# JointQMin: [-2.6179938779914944, 0.0, -2.885592653589793, -1.5184364492350666, -1.3439035240356338, -2.792526803190927]
+# JointSpeedMax: [3.141592653589793, 3.141592653589793, 3.141592653589793, 3.141592653589793, 3.141592653589793, 3.141592653589793]
+
 arm.setFsmLowcmd()
 
 duration = 1000
 lastPos = arm.lowstate.getQ()
-targetPos = np.array([0.0, 1.5, -1.0, -0.54, 0.0, 0.0]) #forward
-
+targetPos = np.array([0.0, 0.0, -0.005, -0.074, 0.0, 0.0])  # forward
 for i in range(0, duration):
-    arm.q = lastPos*(1-i/duration) + targetPos*(i/duration)# set position
-    arm.qd = (targetPos-lastPos)/(duration*0.002) # set velocity
-    arm.tau = armModel.inverseDynamics(arm.q, arm.qd, np.zeros(6), np.zeros(6)) # set torque
+    q = lastPos*(1-i/duration) + targetPos*(i/duration)  # set position
+    qd = (targetPos-lastPos)/(duration*0.002)  # set velocity
+    (arm.q, arm.qd) = armModel.jointProtect(q, qd)
+    print("q", abs(q-arm.q))
+    print("qd", abs(qd-arm.qd))
+    arm.tau = armModel.inverseDynamics(arm.q, arm.qd, np.zeros(6), np.zeros(6))  # set torque
     arm.gripperQ = -1*(i/duration)
 
     arm.setArmCmd(arm.q, arm.qd, arm.tau)
-    arm.setGripperCmd(arm.gripperQ, arm.gripperQd, arm.gripperTau)
+    # arm.setGripperCmd(arm.gripperQ, arm.gripperQd, arm.gripperTau)
     arm.sendRecv()# udp connection
     # print(arm.lowstate.getQ())
     time.sleep(arm._ctrlComp.dt)
 
-arm.loopOn()
-arm.backToStart()
-arm.loopOff()
+duration = 1000
+lastPos = arm.lowstate.getQ()
+targetPos = np.array([0.0, 1.5, -1.0, -0.54, 0.0, 0.0])  # forward
+for i in range(0, duration):
+    q = lastPos*(1-i/duration) + targetPos*(i/duration)  # set position
+    qd = (targetPos-lastPos)/(duration*0.002)  # set velocity
+    (arm.q, arm.qd) = armModel.jointProtect(q, qd)
+    print("q", abs(q-arm.q))
+    print("qd", abs(qd-arm.qd))
+    arm.tau = armModel.inverseDynamics(arm.q, arm.qd, np.zeros(6), np.zeros(6))  # set torque
+    arm.gripperQ = -1*(i/duration)
+
+    arm.setArmCmd(arm.q, arm.qd, arm.tau)
+    # arm.setGripperCmd(arm.gripperQ, arm.gripperQd, arm.gripperTau)
+    arm.sendRecv()# udp connection
+    # print(arm.lowstate.getQ())
+    time.sleep(arm._ctrlComp.dt)
+
+while True:
+    try:
+        arm.sendRecv()
+    except KeyboardInterrupt:
+        print("Finished!")
+    except Exception as e:
+        print(e)
+    finally:
+        pass
+        # arm.loopOn()
+        # arm.backToStart()
+        # arm.loopOff()
